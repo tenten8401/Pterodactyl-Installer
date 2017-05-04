@@ -1,6 +1,12 @@
 #!/bin/bash
 
-check_maria {
+cfg_ppa {
+    apt -y install software-properties-common
+    add-apt-repository -y ppa:ondrej/php
+    apt update
+}
+
+install_mariadb {
     if ! type mysql >/dev/null 2>&1; then
          apt -y install mariadb-server 
     fi
@@ -8,10 +14,6 @@ check_maria {
 
 install_deps {
     echo "Installing dependencies..."
-    sleep 1
-    apt -y install software-properties-common
-    add-apt-repository -y ppa:ondrej/php
-    apt update
     apt -y install php7.1 php7.1-cli php7.1-gd php7.1-mysql php7.1-pdo php7.1-mbstring php7.1-tokenizer php7.1-bcmath php7.1-xml php7.1-fpm php7.1-memcached php7.1-curl php7.1-zip curl tar unzip git memcached
 }
 
@@ -37,15 +39,20 @@ install_panel {
     tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
 }
 
+install_daemon {
+    true
+}
+
 echo "
 Welcome to the Pterodactyl Auto-Installer for Ubuntu.
 This was made for a FRESH install of Ubuntu Server 16.04,
 and you may run into issues if you aren't using a fresh install.
 Please select what you would like to from the list below:
 
-[1] Install Panel + Daemon
+[1] Install Deps
 [2] Install Only Panel
 [3] Install Only Daemon
+[4] Full Install (deps + panel + daemon)
 "
 
 echo -n "Enter Selection [1]: "
@@ -62,17 +69,28 @@ if [ "$fqdn" == "" ]; then
     fqdn="$(hostname)";
 fi
 
-if [ "$software" == "1" ]; then
-    install_panel
-    #install_daemon
-fi
-
-if [ "$software" == "2" ]; then
-    install_panel
-fi
-
-if [ "$software" == "3" ]; then
-    #install_daemon
-fi
+case $software in
+    1 )
+        cfg_ppa
+        install_deps
+        ;;
+    2 )
+        cfg_ppa
+        install_deps
+        install_caddy
+        install_panel
+        ;;
+    3 )
+        cfg_ppa
+        install_deps
+        install_daemon
+        ;;
+    4 )
+        cfg_ppa
+        install_deps
+        install_caddy
+        install_panel
+        install_daemon
+esac
 
 echo $software

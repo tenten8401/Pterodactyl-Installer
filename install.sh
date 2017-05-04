@@ -52,7 +52,8 @@ Please select what you would like to from the list below:
 [1] Install Deps
 [2] Install Only Panel
 [3] Install Only Daemon
-[4] Full Install (deps + panel + daemon)
+[4] Install MariaDB
+[5] Full Install (deps + panel + daemon + mariadb)
 "
 
 echo -n "Enter Selection [1]: "
@@ -77,6 +78,7 @@ case $software in
     2 )
         cfg_ppa
         install_deps
+        install_mariadb
         install_caddy
         install_panel
         ;;
@@ -87,10 +89,15 @@ case $software in
         ;;
     4 )
         cfg_ppa
+        install_mariadb
+    5 )
+        cfg_ppa
         install_deps
+        install_mariadb
         install_caddy
         install_panel
         install_daemon
+        ;;
 esac
 
 echo $software

@@ -1,6 +1,16 @@
 #!/bin/bash
 
-cfg_ppa {
+reset='\033[0m'
+black='\033[0;30m'
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+blue='\033[0;34m'
+purple='\033[0;35m'
+cyan='\033[0;36m'
+white='\033[0;37m'
+
+config_ppa {
     apt -y install software-properties-common
     add-apt-repository -y ppa:ondrej/php
     apt update
@@ -8,7 +18,7 @@ cfg_ppa {
 
 install_mariadb {
     if ! type mysql >/dev/null 2>&1; then
-         apt -y install mariadb-server 
+         apt -y install mariadb-server
     fi
 }
 
@@ -18,6 +28,8 @@ install_deps {
 }
 
 install_caddy {
+    echo "Installing Caddy..."
+    sleep 1
     curl http://getcaddy.com | bash
     curl -s https://raw.githubusercontent.com/mholt/caddy/master/dist/init/linux-systemd/caddy.service -o /etc/systemd/system/caddy.service
     mkdir /etc/caddy
@@ -33,14 +45,41 @@ install_caddy {
 
 install_panel {
     echo "Installing Pterodactyl Panel..."
-    mkdir /opt/pterodactyl
-    LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-    curl -Lo /opt/pterodactyl/pterodactyl.tar.gz "https://github.com/Pterodactyl/Panel/archive/$LATEST_VERSION.tar.gz"
-    tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
+    echo -n "Enter URL (not including http(s)://) [$(hostname)]: "
+    read fqdn
+    echo -n "Enter Email (for SSL): "
+    read email
+    echo -n "Are the settings below correct?
+Email: $email
+URL: https://$fqdn/
+Respsonse: [Y/n]"
+    read response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
+        mkdir /opt/pterodactyl
+        LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+        curl -Lo /opt/pterodactyl/pterodactyl.tar.gz "https://github.com/Pterodactyl/Panel/archive/$LATEST_VERSION.tar.gz"
+        tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
+    		chmod -R 755 /opt/pterodactyl/storage/* /opt/pterodactyl/bootstrap/cache
+  		  cat <<< "$fqdn {
+    root /opt/pterodactyl/public
+    tls $email
+    fastcgi / 127.0.0.1:9000 php
+    rewrite {
+        to {path} {path}/ /index.php?{query}
+    }
+}" > /etc/caddy/Caddyfile
+        php
+    else
+        install_panel
+    fi
+}
+
+config_database {
+		# TODO: Do stuff here
 }
 
 install_daemon {
-    true
+    # TODO: Do stuff here too
 }
 
 echo "
@@ -48,6 +87,9 @@ Welcome to the Pterodactyl Auto-Installer for Ubuntu.
 This was made for a FRESH install of Ubuntu Server 16.04,
 and you may run into issues if you aren't using a fresh install.
 Please select what you would like to from the list below:
+
+$red BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING.
+$red https://docs.pterodactyl.io/docs/setting-up-mysql
 
 [1] Install Deps
 [2] Install Only Panel
@@ -63,35 +105,33 @@ if [ "$software" != "1" ] || [ "$software" != "2" ] || [ "$software" != "3" ]; t
     software="1";
 fi
 
-echo -n "Enter URL (not including http(s)://) [$(hostname)]: "
-read fqdn
-
 if [ "$fqdn" == "" ]; then
     fqdn="$(hostname)";
 fi
 
 case $software in
     1 )
-        cfg_ppa
+        config_ppa
         install_deps
         ;;
     2 )
-        cfg_ppa
+        config_ppa
         install_deps
         install_mariadb
         install_caddy
         install_panel
         ;;
     3 )
-        cfg_ppa
+        config_ppa
         install_deps
         install_daemon
         ;;
     4 )
-        cfg_ppa
+        config_ppa
         install_mariadb
+        ;;
     5 )
-        cfg_ppa
+        config_ppa
         install_deps
         install_mariadb
         install_caddy

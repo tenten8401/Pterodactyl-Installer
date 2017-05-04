@@ -19,6 +19,7 @@ config_ppa {
 install_mariadb {
     if ! type mysql >/dev/null 2>&1; then
          apt -y install mariadb-server
+         echo "$red BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING. \n https://docs.pterodactyl.io/docs/setting-up-mysql $reset"
     fi
 }
 
@@ -59,8 +60,8 @@ Respsonse: [Y/n]"
         LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
         curl -Lo /opt/pterodactyl/pterodactyl.tar.gz "https://github.com/Pterodactyl/Panel/archive/$LATEST_VERSION.tar.gz"
         tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
-    		chmod -R 755 /opt/pterodactyl/storage/* /opt/pterodactyl/bootstrap/cache
-  		  cat <<< "$fqdn {
+            chmod -R 755 /opt/pterodactyl/storage/* /opt/pterodactyl/bootstrap/cache
+            cat <<< "$fqdn {
     root /opt/pterodactyl/public
     tls $email
     fastcgi / 127.0.0.1:9000 php
@@ -75,7 +76,7 @@ Respsonse: [Y/n]"
 }
 
 config_database {
-		# TODO: Do stuff here
+        # TODO: Do stuff here
 }
 
 install_daemon {
@@ -85,11 +86,8 @@ install_daemon {
 echo "
 Welcome to the Pterodactyl Auto-Installer for Ubuntu.
 This was made for a FRESH install of Ubuntu Server 16.04,
-and you may run into issues if you aren't using a fresh install.
+and you may run into issues if you aren\'t using a fresh install.
 Please select what you would like to from the list below:
-
-$red BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING.
-$red https://docs.pterodactyl.io/docs/setting-up-mysql
 
 [1] Install Deps
 [2] Install Only Panel
@@ -100,10 +98,6 @@ $red https://docs.pterodactyl.io/docs/setting-up-mysql
 
 echo -n "Enter Selection [1]: "
 read software
-
-if [ "$software" != "1" ] || [ "$software" != "2" ] || [ "$software" != "3" ]; then
-    software="1";
-fi
 
 if [ "$fqdn" == "" ]; then
     fqdn="$(hostname)";
@@ -138,6 +132,10 @@ case $software in
         install_panel
         install_daemon
         ;;
+    * )
+        echo "Wrong selection, exiting"
+        exit 1
 esac
+
 
 echo $software

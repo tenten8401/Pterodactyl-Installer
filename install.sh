@@ -11,7 +11,7 @@ purple='\033[0;35m'
 cyan='\033[0;36m'
 white='\033[0;37m'
 
-INSTALL_PATH=${FQDN:-/opt/pterodactyl}
+INSTALL_PATH=${INSTALL_PATH:-/opt/pterodactyl}
 LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/Pterodactyl/Panel/releases/latest)
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
 FQDN=${FQDN:-$(hostname)}

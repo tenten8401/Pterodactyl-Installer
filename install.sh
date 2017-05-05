@@ -72,7 +72,8 @@ install_panel() {
         echo -n "Which panel version do you want to install ? [$PANEL_VERSION]\nSee: https://github.com/Pterodactyl/Panel"
         read PANEL_VERSION
         if [ -d "$INSTALL_PATH" ]; then
-            echo "$INSTALL_PATH already exist, do you want to override ?"
+            override=${override:-n}
+            echo "$INSTALL_PATH already exist, do you want to override ? [y/n]"
             read override
             if [[ "$override" =~ ^([nN][oO]|[nN])+$ ]]; then
                 echo "Stopping script"

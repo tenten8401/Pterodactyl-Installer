@@ -17,6 +17,7 @@ PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/'
 FQDN=${FQDN:-$(hostname)}
 MARIA_VER=$(apt show mariadb-server| grep Version| awk {'print $2'})
 MARIA_RELEASE=$(echo $MARIA_VER | awk {'print $1'})
+TEMPLATES="./templates"
 
 config_ppa() {
     apt -y install software-properties-common
@@ -81,7 +82,7 @@ install_panel() {
         curl -Lo /opt/pterodactyl/pterodactyl.tar.gz "https://github.com/Pterodactyl/Panel/archive/$PANEL_VERSION.tar.gz"
         tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
         chmod -R 755 /opt/pterodactyl/storage/* /opt/pterodactyl/bootstrap/cache
-        echo ./templates/Caddyfile | sed -i "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g" > /etc/caddy/Caddyfile
+        cat "$TEMPLATES/Caddyfile" | sed -i "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g" > /etc/caddy/Caddyfile
         # php
     fi
 }

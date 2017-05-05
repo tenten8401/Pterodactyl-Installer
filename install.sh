@@ -11,8 +11,9 @@ purple='\033[0;35m'
 cyan='\033[0;36m'
 white='\033[0;37m'
 
+GITHUB_REPO="https://github.com/Pterodactyl/Panel"
 INSTALL_PATH=${INSTALL_PATH:-/var/www/html/pterodactyl}
-LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/Pterodactyl/Panel/releases/latest)
+LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' "$GITHUB_REPO/releases/latest")
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
 FQDN=${FQDN:-$(hostname)}
 MARIA_VER=$(apt show mariadb-server| grep Version| awk {'print $2'})
@@ -70,21 +71,22 @@ install_panel() {
     echo -n "Are the settings below correct?\nEmail: $EMAIL\nURL: https://$FQDN/\nRespsonse: [Y/n]"
     read RESPONSE
     if [[ "$RESPONSE" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-        echo -n "Which panel version do you want to install ? [$PANEL_VERSION]\nSee: https://github.com/Pterodactyl/Panel"
+        echo -n "Which panel version do you want to install ? [$PANEL_VERSION]\nSee: $GITHUB_REPO"
         read PANEL_VERSION
         if [ -d "$INSTALL_PATH" ]; then
-            override=${override:-n}
             echo "$INSTALL_PATH already exist, do you want to override ? [y/N]"
+            override=${override:-n}
             read override
             if [[ "$override" =~ ^([nN][oO]|[nN])+$ ]]; then
                 echo "Stopping script"
                 exit 1
             fi
         fi
-        curl -Lo /opt/pterodactyl/pterodactyl.tar.gz "https://github.com/Pterodactyl/Panel/archive/$PANEL_VERSION.tar.gz"
-        tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
-        chmod -R 755 /opt/pterodactyl/storage/* /opt/pterodactyl/bootstrap/cache
+        curl -Lo "$INSTALL_PATH/pterodactyl.tar.gz" "https://github.com/Pterodactyl/Panel/archive/$PANEL_VERSION.tar.gz"
+        tar --strip-components=1 -xzvf "$INSTALL_PATH/pterodactyl.tar.gz" -C /opt/pterodactyl/
+        chmod -R 755 "$INSTALL_PATH/storage" "$INSTALL_PATH/bootstrap/cache"
         cat "$TEMPLATES/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g" > /etc/caddy/Caddyfile
+        rm -f "$INSTALL_PATH/pterodactyl.tar.gz"
         # php
     fi
 }

@@ -1,6 +1,10 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
+GITHUB_REPO="https://github.com/Pterodactyl/Panel"
+INSTALL_PATH=${INSTALL_PATH:-/var/www/html/pterodactyl}
+
+
 reset='\033[0m'
 black='\033[0;30m'
 red='\033[0;31m'
@@ -11,15 +15,12 @@ purple='\033[0;35m'
 cyan='\033[0;36m'
 white='\033[0;37m'
 
-GITHUB_REPO="https://github.com/Pterodactyl/Panel"
-INSTALL_PATH=${INSTALL_PATH:-/var/www/html/pterodactyl}
 LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' "$GITHUB_REPO/releases/latest")
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
 FQDN=${FQDN:-$(hostname)}
-MARIA_VER=$(apt show mariadb-server| grep Version| awk {'print $2'})
-MARIA_RELEASE=$(echo $MARIA_VER | awk {'print $1'})
+MARIA_RELEASE=$(apt show mariadb-server| grep Version| awk {'print $2'})
+MARIA_VERSION=$(echo $MARIA_RELEASE | awk {'print $1'})
 TEMPLATES="./templates"
-RESPONSE=${RESPONSE:-y}
 
 config_ppa() {
     apt -y install software-properties-common
@@ -30,10 +31,10 @@ config_ppa() {
 install_mariadb() {
     if ! type mysql >/dev/null 2>&1; then
         apt update
-        if [ "$MARIA_RELEASE" -lt '10' ]; then
-            echo "MariaDB version in repository doesnt meets the requirements (version: $MARIA_VER)"
+        if [ "$MARIA_VERSION" -lt '10' ]; then
+            echo "MariaDB version in repository doesnt meets the requirements (version: $MARIA_RELEASE)"
         fi
-        echo "Installing MariaDB Server version $MARIA_VER"
+        echo "Installing MariaDB Server version $MARIA_RELEASE"
         apt -y install mariadb-server
     fi
 }
@@ -62,13 +63,14 @@ install_caddy() {
 
 install_panel() {
     echo "Installing Pterodactyl Panel..."
-    echo -n "Installation path [$(INSTALL_PATH)]: "
+    echo -n "Installation path [$(INSTALL_PATH)]: "-
     read INSTALL_PATH
     echo -n "Enter URL (not including http(s)://) [$(hostname)]: "
     read FQDN
     echo -n "Enter Email (for SSL): "
     read EMAIL
     echo -n "Are the settings below correct?\nEmail: $EMAIL\nURL: https://$FQDN/\nRespsonse: [Y/n]"
+    RESPONSE=${RESPONSE:-y}
     read RESPONSE
     if [[ "$RESPONSE" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
         echo -n "Which panel version do you want to install ? [$PANEL_VERSION]\nSee: $GITHUB_REPO"

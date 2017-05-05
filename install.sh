@@ -85,7 +85,7 @@ install_panel() {
         curl -Lo "$INSTALL_PATH/pterodactyl.tar.gz" "https://github.com/Pterodactyl/Panel/archive/$PANEL_VERSION.tar.gz"
         tar --strip-components=1 -xzvf "$INSTALL_PATH/pterodactyl.tar.gz" -C /opt/pterodactyl/
         chmod -R 755 "$INSTALL_PATH/storage" "$INSTALL_PATH/bootstrap/cache"
-        cat "$TEMPLATES/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g" > /etc/caddy/Caddyfile
+        cat "$TEMPLATES/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g; s/__INSTALL_PATH__/$INSTALL_PATH/g" > /etc/caddy/Caddyfile
         rm -f "$INSTALL_PATH/pterodactyl.tar.gz"
         # php
     fi

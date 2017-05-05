@@ -18,6 +18,7 @@ FQDN=${FQDN:-$(hostname)}
 MARIA_VER=$(apt show mariadb-server| grep Version| awk {'print $2'})
 MARIA_RELEASE=$(echo $MARIA_VER | awk {'print $1'})
 TEMPLATES="./templates"
+RESPONSE=${RESPONSE:-y}
 
 config_ppa() {
     apt -y install software-properties-common
@@ -66,7 +67,7 @@ install_panel() {
     read FQDN
     echo -n "Enter Email (for SSL): "
     read EMAIL
-    echo -n "Are the settings below correct?\nEmail: $EMAIL\nURL: https://$FQDN/\nRespsonse: [y/n]"
+    echo -n "Are the settings below correct?\nEmail: $EMAIL\nURL: https://$FQDN/\nRespsonse: [Y/n]"
     read RESPONSE
     if [[ "$RESPONSE" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
         echo -n "Which panel version do you want to install ? [$PANEL_VERSION]\nSee: https://github.com/Pterodactyl/Panel"

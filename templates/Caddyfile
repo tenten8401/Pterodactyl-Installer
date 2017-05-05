@@ -1,0 +1,8 @@
+__FQDN__ {
+    root /opt/pterodactyl/public
+    tls __EMAIL__
+    fastcgi / 127.0.0.1:9000 php
+    rewrite {
+        to {path} {path}/ /index.php?{query}
+    }
+}

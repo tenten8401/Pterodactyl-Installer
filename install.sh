@@ -11,7 +11,7 @@ purple='\033[0;35m'
 cyan='\033[0;36m'
 white='\033[0;37m'
 
-INSTALL_PATH=${INSTALL_PATH:-/opt/pterodactyl}
+INSTALL_PATH=${INSTALL_PATH:-/var/www/html/pterodactyl}
 LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/Pterodactyl/Panel/releases/latest)
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
 FQDN=${FQDN:-$(hostname)}
@@ -73,7 +73,7 @@ install_panel() {
         read PANEL_VERSION
         if [ -d "$INSTALL_PATH" ]; then
             override=${override:-n}
-            echo "$INSTALL_PATH already exist, do you want to override ? [y/n]"
+            echo "$INSTALL_PATH already exist, do you want to override ? [y/N]"
             read override
             if [[ "$override" =~ ^([nN][oO]|[nN])+$ ]]; then
                 echo "Stopping script"

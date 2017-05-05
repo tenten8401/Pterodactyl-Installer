@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$0")"
 
 reset='\033[0m'
 black='\033[0;30m'

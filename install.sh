@@ -10,7 +10,7 @@ purple='\033[0;35m'
 cyan='\033[0;36m'
 white='\033[0;37m'
 
-INSTALL_PATH="/opt/pterodactyl"
+INSTALL_PATH=${FQDN:-/opt/pterodactyl}
 LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/Pterodactyl/Panel/releases/latest)
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
 FQDN=${FQDN:-$(hostname)}
@@ -58,6 +58,8 @@ install_caddy() {
 
 install_panel() {
     echo "Installing Pterodactyl Panel..."
+    echo -n "Installation path [$(INSTALL_PATH)]: "
+    read INSTALL_PATH
     echo -n "Enter URL (not including http(s)://) [$(hostname)]: "
     read FQDN
     echo -n "Enter Email (for SSL): "

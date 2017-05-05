@@ -82,7 +82,7 @@ install_panel() {
         curl -Lo /opt/pterodactyl/pterodactyl.tar.gz "https://github.com/Pterodactyl/Panel/archive/$PANEL_VERSION.tar.gz"
         tar --strip-components=1 -xzvf /opt/pterodactyl/pterodactyl.tar.gz -C /opt/pterodactyl/
         chmod -R 755 /opt/pterodactyl/storage/* /opt/pterodactyl/bootstrap/cache
-        cat "$TEMPLATES/Caddyfile" | sed -i "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g" > /etc/caddy/Caddyfile
+        cat "$TEMPLATES/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g" > /etc/caddy/Caddyfile
         # php
     fi
 }
@@ -102,7 +102,7 @@ and you may run into issues if you aren't using a fresh install.
 Please select what you would like to from the list below:
 
 $red BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING.
-$red https://docs.pterodactyl.io/docs/setting-up-mysql $reset
+ https://docs.pterodactyl.io/docs/setting-up-mysql $reset
 
 [1] Install Dependencies
 [2] Install Only Panel

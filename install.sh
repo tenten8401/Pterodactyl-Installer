@@ -1,9 +1,9 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+set -e
+
+DEFAULT_INSTALL_PATH="/var/www/html/pterodactyl"
 
 GITHUB_REPO="https://github.com/Pterodactyl/Panel"
-INSTALL_PATH=${INSTALL_PATH:-/var/www/html/pterodactyl}
-
 
 reset='\033[0m'
 black='\033[0;30m'
@@ -17,7 +17,6 @@ white='\033[0;37m'
 
 LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' "$GITHUB_REPO/releases/latest")
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-FQDN=${FQDN:-$(hostname)}
 MARIA_RELEASE=$(apt show mariadb-server| grep Version| awk {'print $2'})
 MARIA_VERSION=$(echo $MARIA_RELEASE | awk {'print $1'})
 TEMPLATES="./templates"
@@ -62,21 +61,26 @@ install_caddy() {
 }
 
 install_panel() {
+    clear
     echo "Installing Pterodactyl Panel..."
-    echo -n "Installation path [$(INSTALL_PATH)]: "-
+    echo -n "Installation path [$DEFAULT_INSTALL_PATH]: "
     read INSTALL_PATH
+    INSTALL_PATH=${INSTALL_PATH:-$DEFAULT_INSTALL_PATH}
     echo -n "Enter URL (not including http(s)://) [$(hostname)]: "
     read FQDN
+    FQDN=${FQDN:-$(hostname)}
     echo -n "Enter Email (for SSL): "
     read EMAIL
-    echo -n "Are the settings below correct?\nEmail: $EMAIL\nURL: https://$FQDN/\nRespsonse: [Y/n]"
-    RESPONSE=${RESPONSE:-y}
+    echo -ne "
+Email: ${white}${EMAIL}${reset}
+URL: ${white}https://${FQDN}/${reset}
+Install path: ${white}${INSTALL_PATH}${reset}
+Are the settings above correct [Y/n]? "
     read RESPONSE
+    RESPONSE=${RESPONSE:-y}
     if [[ "$RESPONSE" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-        echo -n "Which panel version do you want to install ? [$PANEL_VERSION]\nSee: $GITHUB_REPO"
-        read PANEL_VERSION
         if [ -d "$INSTALL_PATH" ]; then
-            echo "$INSTALL_PATH already exist, do you want to override ? [y/N]"
+            echo -ne "${red}${INSTALL_PATH} already exists, do you want to overwrite [y/N]?${reset} "
             override=${override:-n}
             read override
             if [[ "$override" =~ ^([nN][oO]|[nN])+$ ]]; then
@@ -84,12 +88,22 @@ install_panel() {
                 exit 1
             fi
         fi
+        mkdir -p "$INSTALL_PATH"
         curl -Lo "$INSTALL_PATH/pterodactyl.tar.gz" "$GITHUB_REPO/archive/$PANEL_VERSION.tar.gz"
         tar --strip-components=1 -xzvf "$INSTALL_PATH/pterodactyl.tar.gz" -C "$INSTALL_PATH"
         chmod -R 755 "$INSTALL_PATH/storage" "$INSTALL_PATH/bootstrap/cache"
         cat "$TEMPLATES/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g; s/__INSTALL_PATH__/$INSTALL_PATH/g" > /etc/caddy/Caddyfile
         rm -f "$INSTALL_PATH/pterodactyl.tar.gz"
-        # php
+        cp "$INSTALL_PATH/.env.example" "$INSTALL_PATH/.env"
+        cd "$INSTALL_PATH"
+        curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+        composer install --no-dev
+        php artisan key:generate --force
+        php artisan pterodactyl:env
+        php artisan pterodactyl:mail
+        php artisan migrate
+    else
+        install_panel
     fi
 }
 
@@ -101,14 +115,16 @@ install_panel() {
 # TODO: Do stuff here too
 #}
 
-echo "
+clear
+
+echo -e "
 Welcome to the Pterodactyl Auto-Installer for Ubuntu.
 This was made for a FRESH install of Ubuntu Server 16.04,
 and you may run into issues if you aren't using a fresh install.
 Please select what you would like to from the list below:
 
-$red BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING.
- https://docs.pterodactyl.io/docs/setting-up-mysql $reset
+${red}BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING.
+See https://docs.pterodactyl.io/docs/setting-up-mysql${reset}
 
 [1] Install Dependencies
 [2] Install Only Panel
@@ -119,15 +135,17 @@ $red BE SURE TO MAKE A MYSQL DATABASE & USER BEFORE PROCEEDING.
 "
 
 dispatch() {
-    echo -n "Enter Selection [5]: "
+    echo -n "Enter Selection: "
     read software
 
     case $software in
         1)
+            clear
             config_ppa
             install_deps
             ;;
         2 )
+            clear
             config_ppa
             install_deps
             install_mariadb
@@ -135,15 +153,18 @@ dispatch() {
             install_panel
             ;;
         3 )
+            clear
             config_ppa
             install_deps
             install_daemon
             ;;
         4 )
+            clear
             config_ppa
             install_mariadb
             ;;
         5 )
+            clear
             config_ppa
             install_deps
             install_mariadb
@@ -155,7 +176,8 @@ dispatch() {
             exit 0
             ;;
         * )
-            echo "Invalid selection."
+            clear
+            echo "${red}Invalid selection."
             dispatch
             ;;
     esac

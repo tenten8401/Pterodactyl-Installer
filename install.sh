@@ -19,7 +19,6 @@ LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' "$GITHUB_REPO/releases
 PANEL_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
 MARIA_RELEASE=$(apt show mariadb-server| grep Version| awk {'print $2'})
 MARIA_VERSION=$(echo $MARIA_RELEASE | awk {'print $1'})
-TEMPLATES="./templates"
 
 config_ppa() {
     apt -y install software-properties-common
@@ -92,7 +91,7 @@ Are the settings above correct [Y/n]? "
         curl -Lo "$INSTALL_PATH/pterodactyl.tar.gz" "$GITHUB_REPO/archive/$PANEL_VERSION.tar.gz"
         tar --strip-components=1 -xzvf "$INSTALL_PATH/pterodactyl.tar.gz" -C "$INSTALL_PATH"
         chmod -R 755 "$INSTALL_PATH/storage" "$INSTALL_PATH/bootstrap/cache"
-        cat "$TEMPLATES/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g; s/__INSTALL_PATH__/$INSTALL_PATH/g" > /etc/caddy/Caddyfile
+        curl "https://raw.githubusercontent.com/tenten8401/Pterodactyl-Installer/master/templates/Caddyfile" | sed "s/__FQDN__/$FQDN/g; s/__EMAIL__/$EMAIL/g; s/__INSTALL_PATH__/$INSTALL_PATH/g" > /etc/caddy/Caddyfile
         rm -f "$INSTALL_PATH/pterodactyl.tar.gz"
         cp "$INSTALL_PATH/.env.example" "$INSTALL_PATH/.env"
         cd "$INSTALL_PATH"

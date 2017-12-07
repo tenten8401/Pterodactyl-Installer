@@ -40,23 +40,7 @@ install_mariadb() {
 install_deps() {
     echo "Installing dependencies..."
     apt update
-    apt -y install php7.1 php7.1-cli php7.1-gd php7.1-mysql php7.1-pdo php7.1-mbstring php7.1-tokenizer php7.1-bcmath php7.1-xml php7.1-fpm php7.1-memcached php7.1-curl php7.1-zip curl tar unzip git memcached
-}
-
-install_caddy() {
-    echo "Installing Caddy..."
-    sleep 1
-    curl http://getcaddy.com | bash
-    curl -s https://raw.githubusercontent.com/mholt/caddy/master/dist/init/linux-systemd/caddy.service -o /etc/systemd/system/caddy.service
-    mkdir /etc/caddy
-    chown -R root:www-data /etc/caddy
-    mkdir /etc/ssl/caddy
-    chown -R www-data:root /etc/caddy
-    chmod 0770 /etc/ssl/caddy
-    systemctl daemon-reload
-    systemctl enable caddy.service
-    setcap cap_net_bind_service=+ep /usr/local/bin/caddy
-    systemctl start caddy.service
+    apt -y install php7.1 php7.1-cli php7.1-gd php7.1-mysql php7.1-pdo php7.1-mbstring php7.1-tokenizer php7.1-bcmath php7.1-xml php7.1-fpm php7.1-memcached php7.1-curl php7.1-zip curl tar unzip git redis-server nginx
 }
 
 install_panel() {

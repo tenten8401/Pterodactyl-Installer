@@ -1,4 +1,4 @@
-# Pterodactyl-Installer
+# THIS IS BROKEN DONT USE IT PLS kthxbye
 An installer for Pterodactyl game server management panel (https://pterodactyl.io).  
 This was intended for a fresh install of Ubuntu 16.04 Server, and may support CentOS in the future.
 If you do not use a fresh install, things may be broken, and problems may arise.
